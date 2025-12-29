@@ -1,0 +1,16 @@
+{
+  "name": "ai-kb-chat-assistant",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm --workspace server run dev\" \"npm --workspace client run dev\"",
+    "seed": "npm --workspace server run seed",
+    "reindex": "npm --workspace server run reindex"
+  }
+}
