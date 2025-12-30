@@ -32,7 +32,7 @@ export async function embedText(text) {
     content: { parts: [{ text }] }
   });
 
-  // Response schema includes embedding.values[]
+ 
   const vector = data?.embedding?.values;
   if (!Array.isArray(vector)) throw new Error("Embedding missing in Gemini response");
   return { vector, model };
@@ -41,7 +41,7 @@ export async function embedText(text) {
 export async function generateAnswer({ instructions, input }) {
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
-  // Convert OpenAI-style messages -> Gemini contents (role: user/model)
+
   const contents = (input || []).map((m) => ({
     role: m.role === "assistant" ? "model" : "user",
     parts: [{ text: m.content }]
