@@ -1,3 +1,58 @@
+// import "dotenv/config";
+// import express from "express";
+// import cors from "cors";
+// import helmet from "helmet";
+// import morgan from "morgan";
+// import rateLimit from "express-rate-limit";
+// import { connectDB } from "./config/db.js";
+// import { chatRouter } from "./routes/chat.js";
+// import { adminRouter } from "./routes/admin.js";
+// import { analyticsRouter } from "./routes/analytics.js";
+
+// const app = express();
+
+// app.use(helmet());
+// app.use(express.json({ limit: "2mb" }));
+// app.use(morgan("dev"));
+
+// app.use(
+//   cors({
+//     origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+//     credentials: true
+//   })
+// );
+
+// app.use(
+//   "/api/",
+//   rateLimit({
+//     windowMs: 60 * 1000,
+//     max: 120
+//   })
+// );
+
+// app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
+// app.use("/api/chat", chatRouter);
+// app.use("/api/admin", adminRouter);
+// app.use("/api/analytics", analyticsRouter);
+
+// const port = process.env.PORT || 8080;
+
+// async function start() {
+//   try {
+//     await connectDB(process.env.MONGO_URI);
+//     console.log("Database is set up");
+
+//     app.listen(port, () => {
+//       console.log(`Backend is start on http://localhost:${port}`);
+//     });
+//   } catch (err) {
+//     console.error("Failed to start:", err?.message || err);
+//     process.exit(1);
+//   }
+// }
+
+// start();
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -15,18 +70,41 @@ app.use(helmet());
 app.use(express.json({ limit: "2mb" }));
 app.use(morgan("dev"));
 
+const allowlist = [
+  "http://localhost:5173",
+  "https://ai-powered-based-chat-assistant-cli.vercel.app",
+];
+
+// If you want to add more later, you can also split env by commas:
+// CLIENT_ORIGIN=https://...vercel.app,http://localhost:5173
+const envOrigins = (process.env.CLIENT_ORIGIN || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([...allowlist, ...envOrigins]));
+
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
-    credentials: true
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true); // curl/postman
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "x-admin-key"],
   })
 );
+
+// preflight support
+app.options("*", cors());
 
 app.use(
   "/api/",
   rateLimit({
     windowMs: 60 * 1000,
-    max: 120
+    max: 120,
   })
 );
 
@@ -44,7 +122,7 @@ async function start() {
     console.log("Database is set up");
 
     app.listen(port, () => {
-      console.log(`Backend is start on http://localhost:${port}`);
+      console.log(`Backend started on port ${port}`);
     });
   } catch (err) {
     console.error("Failed to start:", err?.message || err);
