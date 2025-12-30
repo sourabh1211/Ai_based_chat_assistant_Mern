@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "https://ai-powered-based-chat-assistant.onrender.com";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8080";
 
 export function getSessionId() {
   return localStorage.getItem("kb_session_id");
